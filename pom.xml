@@ -24,7 +24,7 @@
     <name>home-bot</name>
     <description>home-bot</description>
     <properties>
-        <java.version>11</java.version>
+        <java.version>1.8</java.version>
         <kotlin.version>1.6.10</kotlin.version>
         <kotest.version>5.0.3</kotest.version>
         <kotest-extensions-spring.version>1.1.0</kotest-extensions-spring.version>
