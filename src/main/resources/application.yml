@@ -1,0 +1,6 @@
+fastcom:
+  token: ${FASTCOM_TOKEN}
+
+telegram:
+  token: ${TELEGRAM_TOKEN}
+  allowed-users: ${TELEGRAM_ALLOWED_USERS}
