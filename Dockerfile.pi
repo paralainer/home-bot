@@ -6,9 +6,9 @@ COPY .mvn ./.mvn
 COPY mvnw $APP_HOME
 COPY pom.xml $APP_HOME
 # download dependencies
-RUN ./mvnw package -Dmaven.test.skip=true --fail-never
+RUN ./mvnw dependency:go-offline
 COPY src ./src
-RUN ./mvnw package -Dmaven.test.skip=true -o
+RUN ./mvnw package -Dmaven.test.skip=true
 
 FROM balenalib/raspberry-pi-openjdk:8-run
 WORKDIR /root/
