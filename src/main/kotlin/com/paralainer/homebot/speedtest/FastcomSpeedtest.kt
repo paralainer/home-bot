@@ -28,7 +28,7 @@ class FastcomSpeedtest(
     override suspend fun measureSpeed(): SpeedtestResult {
         val avg = fetchTargets().map {
             measureSpeed(it)
-        }.average()
+        }.drop(1).average()
 
         return SpeedtestResult(avg)
     }
@@ -54,7 +54,7 @@ class FastcomSpeedtest(
 
     private suspend fun fetchTargets(): List<URI> {
         val response = apiWebClient.get()
-            .uri("https://api.fast.com/netflix/speedtest/v2?token=${config.token}&https=true&urlCount=1")
+            .uri("https://api.fast.com/netflix/speedtest/v2?token=${config.token}&https=true&urlCount=5")
             .retrieve()
             .awaitBody<ApiResponse>()
 
