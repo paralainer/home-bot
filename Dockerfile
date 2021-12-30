@@ -6,7 +6,7 @@ COPY .mvn ./.mvn
 COPY mvnw $APP_HOME
 COPY pom.xml $APP_HOME
 # download dependencies
-RUN ./mvnw dependency:go-offline
+RUN ./mvnw dependency:go-offline -DexcludeScope=test
 COPY src ./src
 RUN ./mvnw package -Dmaven.test.skip=true
 
