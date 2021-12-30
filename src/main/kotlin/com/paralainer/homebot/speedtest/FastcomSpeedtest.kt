@@ -2,6 +2,7 @@ package com.paralainer.homebot.speedtest
 
 import io.netty.resolver.DefaultAddressResolverGroup
 import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.LoggerFactory
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Service
@@ -18,6 +19,9 @@ class FastcomSpeedtest(
     private val config: FastcomConfig,
     private val clock: Clock
 ) : SpeedtestService {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     private val apiWebClient = WebClient.builder().clientConnector(
         ReactorClientHttpConnector(
             HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)
@@ -27,6 +31,7 @@ class FastcomSpeedtest(
 
     override suspend fun measureSpeed(): SpeedtestResult {
         val avg = fetchTargets().map {
+            logger.info("Target url: " + it.toASCIIString())
             measureSpeed(it)
         }.drop(1).average()
 
