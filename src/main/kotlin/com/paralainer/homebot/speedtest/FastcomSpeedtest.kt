@@ -1,15 +1,12 @@
 package com.paralainer.homebot.speedtest
 
-import io.netty.resolver.DefaultAddressResolverGroup
-import kotlinx.coroutines.reactive.awaitSingle
+import com.paralainer.homebot.common.apiWebClient
+import com.paralainer.homebot.common.apiWebClientBuilder
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.buffer.DataBufferUtils
-import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.BodyExtractors
-import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.awaitBody
-import reactor.netty.http.client.HttpClient
+import org.springframework.web.reactive.function.client.awaitExchange
 import java.net.URI
 import java.time.Clock
 import java.time.Duration
@@ -22,43 +19,43 @@ class FastcomSpeedtest(
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val apiWebClient = WebClient.builder().clientConnector(
-        ReactorClientHttpConnector(
-            HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)
-        )
+    private val fileWebClient = apiWebClientBuilder().exchangeStrategies(
+        ExchangeStrategies.builder()
+            .codecs {
+                it.defaultCodecs()
+                    .maxInMemorySize(30 * 1024 * 1024)
+            }
+            .build()
     ).build()
 
-
     override suspend fun measureSpeed(): SpeedtestResult {
-        val avg = fetchTargets().map {
-            logger.info("Target url: " + it.toASCIIString())
-            measureSpeed(it)
-        }.drop(1).average()
+        val start = clock.instant()
+        val avg = fetchTargets().mapNotNull {
+            if (Duration.between(start, clock.instant()) > Duration.ofSeconds(30)) {
+                null
+            } else {
+                logger.info("Target url: " + it.toASCIIString())
+                measureSpeed(it)
+            }
+        }.let {
+            if (it.size > 1) it.drop(1) else it
+        }.average()
 
         return SpeedtestResult(avg)
     }
 
     private suspend fun measureSpeed(uri: URI): Double {
         val start = clock.instant()
-        val size = apiWebClient.get().uri(uri).exchangeToMono { clientResponse ->
-            clientResponse
-                .body(BodyExtractors.toDataBuffers())
-                .map {
-                    val count = it.readableByteCount()
-                    it.read(ByteArray(count))
-                    DataBufferUtils.release(it)
-                    count
-                }
-                .collectList()
-        }.awaitSingle().sum()
+        val (size, stop) = fileWebClient.get().uri(uri).awaitExchange {
+            it.awaitBody<ByteArray>().size to clock.instant()
+        }
 
-        val stop = clock.instant()
-        val time = Duration.between(start, stop).toMillis()
-        return (size / time.toDouble()) * 1000 / (1024 * 1024) * 8
+        val time = Duration.between(start, stop).seconds
+        return size / time.toDouble() / 125000
     }
 
     private suspend fun fetchTargets(): List<URI> {
-        val response = apiWebClient.get()
+        val response = apiWebClient().get()
             .uri("https://api.fast.com/netflix/speedtest/v2?token=${config.token}&https=true&urlCount=5")
             .retrieve()
             .awaitBody<ApiResponse>()
