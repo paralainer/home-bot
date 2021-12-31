@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.client.awaitExchange
 import java.net.URI
 import java.time.Clock
 import java.time.Duration
+import java.time.Instant
 
 @Service
 class FastcomSpeedtest(
@@ -45,12 +46,11 @@ class FastcomSpeedtest(
     }
 
     private suspend fun measureSpeed(uri: URI): Double {
-        val start = clock.instant()
-        val (size, stop) = fileWebClient.get().uri(uri).awaitExchange {
-            it.awaitBody<ByteArray>().size to clock.instant()
+        val (size, time) = fileWebClient.get().uri(uri).awaitExchange {
+            val start = clock.instant()
+            it.awaitBody<ByteArray>().size to Duration.between(start, clock.instant()).seconds
         }
 
-        val time = Duration.between(start, stop).seconds
         return size / time.toDouble() / 125000
     }
 
@@ -70,4 +70,6 @@ class FastcomSpeedtest(
     private data class ApiTarget(
         val url: URI
     )
+
+    private data class Measurement(val size: Int, val start: Instant, val stop: Instant)
 }
