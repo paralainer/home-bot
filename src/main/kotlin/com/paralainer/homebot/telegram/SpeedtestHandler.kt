@@ -2,6 +2,7 @@ package com.paralainer.homebot.telegram
 
 import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
 import com.github.kotlintelegrambot.entities.ChatAction
+import com.github.kotlintelegrambot.entities.ParseMode
 import com.paralainer.homebot.speedtest.SpeedtestService
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -31,7 +32,15 @@ class SpeedtestHandler(
 
                 env.bot.sendMessage(
                     chatId,
-                    text = "Speed: ${formatSpeed(result.speedMps)} Mbps"
+                    text = """
+                        ```
+                        Speed:
+                          Down: ${formatSpeed(result.downloadSpeedMbps)} Mbps
+                          Up: ${formatSpeed(result.uploadSpeedMbps)} Mbps
+                          Ping: ${formatSpeed(result.pingMs)} ms
+                        ```  
+                    """.trimIndent(),
+                    parseMode = ParseMode.MARKDOWN_V2
                 )
             }
         } catch (ex: Exception) {

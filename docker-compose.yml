@@ -6,4 +6,10 @@ services:
       - "8080:8080"
     env_file:
       - "env.properties"
+    links:
+      - speedtest
 
+  speedtest:
+    build: ./speedtest
+    ports:
+      - "8000:8000"
