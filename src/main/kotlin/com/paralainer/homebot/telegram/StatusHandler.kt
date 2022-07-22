@@ -16,7 +16,9 @@ class StatusHandler(
 
         env.bot.sendMessage(
             env.message.chatId(),
-            result.joinToString("\n") { "${it.name} ${String.format("%.2d", it.percentage)}% ${it.status}" }
+            result.joinToString("\n") { "${it.name} ${String.format("%.2f", it.percentage)}% ${it.status}" }.ifEmpty {
+                "No downloads"
+            }
         )
     }
 }
