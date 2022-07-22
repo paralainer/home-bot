@@ -18,21 +18,12 @@ class SpeedtestHandler(
         val chatId = env.message.chatId()
 
         try {
-            coroutineScope {
-                val typingJob = launch {
-                    while (isActive) {
-                        env.bot.sendChatAction(chatId, ChatAction.TYPING)
-                        delay(5000)
-                    }
-                }
-
-                val result = speedtestService.measureSpeed()
-
-                typingJob.cancel()
-
-                env.bot.sendMessage(
-                    chatId,
-                    text = """
+            val result = withTypingJob(env) {
+                speedtestService.measureSpeed()
+            }
+            env.bot.sendMessage(
+                chatId,
+                text = """
                         ```
                         Speed:
                           Down: ${formatSpeed(result.downloadSpeedMbps)} Mbps
@@ -40,9 +31,8 @@ class SpeedtestHandler(
                           Ping: ${formatSpeed(result.pingMs)} ms
                         ```  
                     """.trimIndent(),
-                    parseMode = ParseMode.MARKDOWN_V2
-                )
-            }
+                parseMode = ParseMode.MARKDOWN_V2
+            )
         } catch (ex: Exception) {
             env.bot.sendMessage(
                 chatId,

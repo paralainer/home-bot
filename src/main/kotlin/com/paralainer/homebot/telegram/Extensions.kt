@@ -1,6 +1,11 @@
 package com.paralainer.homebot.telegram
 
+import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
 import com.github.kotlintelegrambot.entities.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import retrofit2.Response
 
 fun Chat.chatId(): ChatId = ChatId.fromId(id)
@@ -61,3 +66,19 @@ fun Pair<Response<com.github.kotlintelegrambot.network.Response<Message>?>?, Exc
         return Result.failure(ex)
     }
 }
+
+suspend fun <T> withTypingJob(env: CommandHandlerEnvironment, block: suspend () -> T): T =
+    coroutineScope {
+        val typingJob = launch {
+            while (isActive) {
+                env.bot.sendChatAction(env.message.chatId(), ChatAction.TYPING)
+                delay(5000)
+            }
+        }
+
+        val result = block()
+
+        typingJob.cancel()
+
+        result
+    }

@@ -8,6 +8,7 @@ import com.github.kotlintelegrambot.dispatcher.handlers.Handler
 import com.github.kotlintelegrambot.dispatcher.telegramError
 import com.github.kotlintelegrambot.entities.ChatAction
 import com.github.kotlintelegrambot.entities.Update
+import com.paralainer.homebot.torrent.TorrentService
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -19,7 +20,8 @@ import javax.annotation.PostConstruct
 @Component
 class TelegramRouter(
     private val config: TelegramConfig,
-    private val speedtestHandler: SpeedtestHandler
+    private val speedtestHandler: SpeedtestHandler,
+    private val statusHandler: StatusHandler
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -33,6 +35,10 @@ class TelegramRouter(
 
                 command("speedtest") {
                     handleAsync(update = update) { speedtestHandler.measureSpeedCommand(this) }
+                }
+
+                command("status") {
+                    handleAsync(update = update) { statusHandler.status(this) }
                 }
 
                 telegramError {

@@ -1,6 +1,8 @@
 package com.paralainer.homebot
 
 import com.paralainer.homebot.telegram.TelegramConfig
+import com.paralainer.homebot.torrent.UTorrentClient
+import com.paralainer.homebot.torrent.UTorrentConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
@@ -15,7 +17,8 @@ class HomeBotApplication
 
 @Configuration
 @EnableConfigurationProperties(
-    TelegramConfig::class
+    TelegramConfig::class,
+    UTorrentConfig::class
 )
 class HomeBotApplicationConfiguration {
 

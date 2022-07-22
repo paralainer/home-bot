@@ -1,3 +1,8 @@
 telegram:
   token: ${TELEGRAM_TOKEN}
   allowed-users: ${TELEGRAM_ALLOWED_USERS}
+
+utorrent:
+  base-url: ${UTORRENT_BASE_URL}
+  username: ${UTORRENT_USERNAME}
+  password: ${UTORRENT_PASSWORD}
