@@ -35,7 +35,7 @@ $downloads
         buildString {
             append(status.format())
             if (status != DownloadStatus.Finished) {
-                append(" ").append("${percentage.toInt()}%".padEnd(4))
+                append(" ").append("${percentage.toInt()}%")
             }
 
             append(" ").append(name.trim().take(15))
