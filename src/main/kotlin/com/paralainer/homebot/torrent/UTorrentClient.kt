@@ -31,6 +31,8 @@ class UTorrentClient(
 
         return objectMapper.readValue(rawResponse)
     }
+
+
 }
 
 data class UTorrentDownload(

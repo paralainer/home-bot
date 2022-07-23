@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 internal class UTorrentServiceTest {
     @Test
     fun test() = runBlocking {
-        val result = UTorrentService(UTorrentClient(CustomObjectMapper())).listDownloads()
-        println(result)
+        /*val result = UTorrentService(UTorrentClient(CustomObjectMapper())).listDownloads()
+        println(result)*/
     }
 }

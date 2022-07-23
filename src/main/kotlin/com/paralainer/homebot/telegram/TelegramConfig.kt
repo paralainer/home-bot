@@ -7,8 +7,10 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties(prefix = "telegram")
 class TelegramConfig(
     val token: String,
-    allowedUsers: String
+    allowedUsers: String,
 ) {
     val allowedUsersList: Set<Long> = allowedUsers.split(",")
         .filter { it.isNotBlank() }.map { it.trim().toLong() }.toSet()
+
+    val notificationUser: Long = allowedUsersList.first() // TODO move to config
 }

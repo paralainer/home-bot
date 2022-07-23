@@ -1,6 +1,7 @@
 package com.paralainer.homebot.torrent
 
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 interface TorrentService {
     suspend fun listDownloads(): List<DownloadItem>
@@ -13,22 +14,45 @@ class UTorrentService(
     override suspend fun listDownloads(): List<DownloadItem> =
         client.listDownloads().torrents.map {
             DownloadItem(
-                it[2].toString(),
-                (it[4] as Int).toDouble() / 10,
-                it[21].toString().split(" ").first()
+                hash = it[0] as String,
+                name = it[2] as String,
+                percentage = (it[4] as Int).toDouble() / 10,
+                status = DownloadStatus.fromStatusString((it[21] as String)),
+                eta = Duration.ofSeconds((it[10] as Int).toLong())
             )
         }
 }
 
 data class DownloadItem(
+    val hash: String,
     val name: String,
     val percentage: Double,
-    val status: String
+    val status: DownloadStatus,
+    val eta: Duration
 )
 
 sealed class DownloadStatus(val name: String) {
-    object InProgress : DownloadStatus("in-progress")
+    object InProgress : DownloadStatus("in progress")
     object Finished : DownloadStatus("finished")
     object Pause : DownloadStatus("pause")
     data class Failed(val error: String?) : DownloadStatus("error")
+    class Unknown(name: String) : DownloadStatus(name);
+
+    companion object {
+        fun fromStatusString(status: String): DownloadStatus =
+            when {
+                status.startsWith("error", ignoreCase = true) ->
+                    Failed(status.replace("error: ", "", ignoreCase = true))
+
+                status.contains("seeding", ignoreCase = true) ||
+                    status.contains("finish", ignoreCase = true) -> Finished
+
+                status.contains("pause", ignoreCase = true) ||
+                    status.contains("stop", ignoreCase = true) -> Pause
+
+                status.contains("download", ignoreCase = true) -> InProgress
+
+                else -> Unknown(status)
+            }
+    }
 }
