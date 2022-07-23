@@ -1,13 +1,8 @@
 package com.paralainer.homebot.telegram
 
 import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
-import com.github.kotlintelegrambot.entities.ChatAction
 import com.github.kotlintelegrambot.entities.ParseMode
 import com.paralainer.homebot.speedtest.SpeedtestService
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import org.springframework.stereotype.Component
 
 @Component

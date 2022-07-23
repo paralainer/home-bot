@@ -3,7 +3,9 @@ package com.paralainer.homebot.torrent
 import com.paralainer.homebot.torrent.DownloadStatus.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Component

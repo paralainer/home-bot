@@ -3,15 +3,10 @@ package com.paralainer.homebot.torrent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.paralainer.homebot.common.apiWebClientBuilder
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.ExchangeFilterFunctions
 import org.springframework.web.reactive.function.client.awaitBody
-import org.springframework.web.reactive.function.client.awaitExchange
 import java.net.URI
-import java.time.Duration
-import java.time.Instant
 
 @Component
 class UTorrentClient(
