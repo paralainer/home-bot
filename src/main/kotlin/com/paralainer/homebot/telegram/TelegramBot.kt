@@ -11,7 +11,9 @@ class TelegramBot(
     private val config: TelegramConfig,
     private val telegramRouter: TelegramRouter
 ) {
-    val bot: Bot by lazy {
+    val bot: Bot = initBot()
+
+    private fun initBot(): Bot {
         val botInstance = bot {
             token = config.token
 
@@ -24,6 +26,6 @@ class TelegramBot(
 
         println("Telegram bot started")
 
-        botInstance
+        return botInstance
     }
 }
