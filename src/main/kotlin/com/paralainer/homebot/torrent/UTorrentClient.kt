@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.ExchangeFilterFunctions
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.awaitExchange
+import java.net.URI
 import java.time.Duration
 import java.time.Instant
 
@@ -30,6 +31,14 @@ class UTorrentClient(
             .retrieve().awaitBody<String>()
 
         return objectMapper.readValue(rawResponse)
+    }
+
+    suspend fun addByUrl(url: URI) {
+        client.get().uri {
+            it.queryParam("action", "add-url")
+                .queryParam("s", url.toASCIIString())
+                .build()
+        }.retrieve().awaitBody<String>()
     }
 
 

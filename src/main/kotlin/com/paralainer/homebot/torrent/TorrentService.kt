@@ -1,10 +1,12 @@
 package com.paralainer.homebot.torrent
 
 import org.springframework.stereotype.Component
+import java.net.URI
 import java.time.Duration
 
 interface TorrentService {
     suspend fun listDownloads(): List<DownloadItem>
+    suspend fun addByUrl(url: URI): Unit
 }
 
 @Component
@@ -21,6 +23,8 @@ class UTorrentService(
                 eta = Duration.ofSeconds((it[10] as Int).toLong())
             )
         }
+
+    override suspend fun addByUrl(url: URI): Unit = client.addByUrl(url)
 }
 
 data class DownloadItem(

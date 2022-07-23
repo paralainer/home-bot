@@ -6,6 +6,7 @@ import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.handlers.Handler
 import com.github.kotlintelegrambot.dispatcher.telegramError
+import com.github.kotlintelegrambot.dispatcher.text
 import com.github.kotlintelegrambot.entities.ChatAction
 import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.Update
@@ -26,6 +27,7 @@ class TelegramRouter(
     private val config: TelegramConfig,
     private val speedtestHandler: SpeedtestHandler,
     private val statusHandler: StatusHandler,
+    private val downloadHandler: DownloadHandler,
     private val torrentStatusTracker: TorrentStatusTracker
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -44,6 +46,14 @@ class TelegramRouter(
 
                 command("status") {
                     handleAsync(update = update) { statusHandler.status(this) }
+                }
+
+                text {
+                    if (text.startsWith("magnet://")) {
+                        handleAsync(update = update) {
+                            downloadHandler.addByUrl(this)
+                        }
+                    }
                 }
 
                 telegramError {
