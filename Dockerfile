@@ -1,4 +1,4 @@
-FROM balenalib/raspberry-pi-openjdk:8
+FROM openjdk:8
 ENV APP_HOME=/root/dev/homebot/
 WORKDIR $APP_HOME
 COPY .mvn ./.mvn

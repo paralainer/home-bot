@@ -1,4 +1,4 @@
-FROM balenalib/raspberry-pi-python:3.7-buster
+FROM python:3.7.13-buster
 RUN sudo apt-get update && sudo apt-get install speedtest-cli
 COPY endpoint.py .
 
