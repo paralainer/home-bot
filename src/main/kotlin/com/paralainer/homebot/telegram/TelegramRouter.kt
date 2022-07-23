@@ -72,6 +72,7 @@ class TelegramRouter(
     private fun observeTorrentEvents(botInstance: Bot) {
         GlobalScope.launch {
             torrentStatusTracker.observeEvents().collect { event ->
+                println("Event: $event")
                 when (event) {
                     is TorrentEvent.Error ->
                         botInstance.sendMessage(
