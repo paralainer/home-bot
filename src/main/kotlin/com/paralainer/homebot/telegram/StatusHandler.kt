@@ -32,13 +32,20 @@ $downloads
 
 
     private fun DownloadItem.format(): String =
-        name.trim().take(10).padEnd(10) +
-            "${percentage.toInt().toString().padStart(4)}% " +
-            status.name.padEnd(12) +
-            (eta.format().takeIf {
-                status == DownloadStatus.InProgress ||
-                    status is DownloadStatus.Unknown
-            } ?: "")
+        buildString {
+            append(status.name.format().padEnd(2))
+            if (status != DownloadStatus.Finished) {
+                append("${percentage.toInt().toString().padStart(4)}%")
+            }
+
+            append(name.trim().take(15).padEnd(16).padStart(1))
+
+            if (status == DownloadStatus.InProgress ||
+                status is DownloadStatus.Unknown
+            ) {
+                append(eta.format())
+            }
+        }
 
     private fun Duration.format(): String {
         val hours = toHours()
@@ -49,4 +56,13 @@ $downloads
             append(toMinutesPart()).append("m")
         }
     }
+
+    private fun DownloadStatus.format(): String =
+        when (this) {
+            is DownloadStatus.Failed -> "❌"
+            DownloadStatus.Finished -> "✅"
+            DownloadStatus.InProgress -> "🔄"
+            DownloadStatus.Pause -> "⏸"
+            is DownloadStatus.Unknown -> "❔"
+        }
 }
