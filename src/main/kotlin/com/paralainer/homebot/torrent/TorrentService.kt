@@ -57,7 +57,10 @@ sealed class DownloadStatus(val name: String) {
                 status.contains("download", ignoreCase = true) ||
                     status.contains("queuing", ignoreCase = true) -> InProgress
 
-                else -> Unknown(status)
+                else -> {
+                    println("Received unknown status: $status")
+                    Unknown(status)
+                }
             }
     }
 }
