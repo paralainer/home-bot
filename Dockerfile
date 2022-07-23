@@ -8,7 +8,7 @@ COPY pom.xml $APP_HOME
 RUN ./mvnw dependency:go-offline
 
 COPY src ./src
-RUN ./mvnw -o package -Dmaven.test.skip=true
+RUN ./mvnw package -Dmaven.test.skip=true
 
 EXPOSE 8080
 CMD ["java","-jar","/root/dev/homebot/target/home-bot-0.0.1-SNAPSHOT.jar"]
