@@ -54,6 +54,12 @@ class TelegramRouter(
 
         botInstance.startPolling()
 
+        observeTorrentEvents(botInstance)
+
+        logger.info("Telegram bot started")
+    }
+
+    private fun observeTorrentEvents(botInstance: Bot) {
         GlobalScope.launch {
             torrentStatusTracker.observeEvents().collect { event ->
                 when (event) {
@@ -61,32 +67,30 @@ class TelegramRouter(
                         botInstance.sendMessage(
                             ChatId.fromId(config.notificationUser),
                             """
-                            Download error:
-                            ${event.name} 
-                            ${event.error}   
-                            """.trimIndent()
+                                Download error:
+                                ${event.name} 
+                                ${event.error}   
+                                """.trimIndent()
                         )
                     is TorrentEvent.Finished ->
                         botInstance.sendMessage(
                             ChatId.fromId(config.notificationUser),
                             """
-                            Download finished:
-                            ${event.name}    
-                            """.trimIndent()
+                                Download finished:
+                                ${event.name}    
+                                """.trimIndent()
                         )
                     is TorrentEvent.Started ->
                         botInstance.sendMessage(
                             ChatId.fromId(config.notificationUser),
                             """
-                            Download started:
-                            ${event.name}    
-                            """.trimIndent()
+                                Download started:
+                                ${event.name}    
+                                """.trimIndent()
                         )
                 }
             }
         }
-
-        logger.info("Telegram bot started")
     }
 
     private inner class AllowedUsersHandler : Handler {

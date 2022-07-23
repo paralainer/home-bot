@@ -1,4 +1,4 @@
-FROM openjdk:8
+FROM adoptopenjdk/openjdk16
 ENV APP_HOME=/root/dev/homebot/
 WORKDIR $APP_HOME
 COPY .mvn ./.mvn
