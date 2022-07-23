@@ -50,7 +50,8 @@ sealed class DownloadStatus(val name: String) {
                 status.contains("pause", ignoreCase = true) ||
                     status.contains("stop", ignoreCase = true) -> Pause
 
-                status.contains("download", ignoreCase = true) -> InProgress
+                status.contains("download", ignoreCase = true) ||
+                    status.contains("queue", ignoreCase = true) -> InProgress
 
                 else -> Unknown(status)
             }

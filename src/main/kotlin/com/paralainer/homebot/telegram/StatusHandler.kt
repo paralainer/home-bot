@@ -49,5 +49,4 @@ $downloads
             append(toMinutesPart()).append("m")
         }
     }
-
 }
