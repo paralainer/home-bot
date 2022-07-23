@@ -49,7 +49,7 @@ class TelegramRouter(
                 }
 
                 text {
-                    if (text.startsWith("magnet://")) {
+                    if (text.startsWith("magnet:")) {
                         handleAsync(update = update) {
                             downloadHandler.addByUrl(this)
                         }
