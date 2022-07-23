@@ -33,7 +33,7 @@ $downloads
 
     private fun DownloadItem.format(): String =
         buildString {
-            append(status.name.format().padEnd(2))
+            append(status.format().padEnd(2))
             if (status != DownloadStatus.Finished) {
                 append("${percentage.toInt().toString().padStart(4)}%")
             }
