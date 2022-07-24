@@ -4,17 +4,23 @@ import com.github.kotlintelegrambot.entities.ChatId
 import com.paralainer.homebot.telegram.TelegramBot
 import com.paralainer.homebot.telegram.TelegramConfig
 import com.paralainer.homebot.torrent.TorrentEvent
+import com.paralainer.homebot.torrent.TorrentService
 import com.paralainer.homebot.torrent.TorrentStatusTracker
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Component
+import java.time.Duration
 import javax.annotation.PostConstruct
+import kotlin.time.toKotlinDuration
 
 @Component
 class TorrentStatusMonitor(
     telegramBot: TelegramBot,
     private val config: TelegramConfig,
-    private val torrentStatusTracker: TorrentStatusTracker
+    private val torrentStatusTracker: TorrentStatusTracker,
+    private val torrentService: TorrentService
 ) {
 
     private val bot = telegramBot.bot
@@ -33,7 +39,7 @@ class TorrentStatusMonitor(
                                 ${event.error}   
                                 """.trimIndent()
                     )
-                is TorrentEvent.Finished ->
+                is TorrentEvent.Finished -> {
                     bot.sendMessage(
                         ChatId.fromId(config.notificationUser),
                         """
@@ -41,6 +47,9 @@ class TorrentStatusMonitor(
                                 ${event.name}    
                                 """.trimIndent()
                     )
+
+                    cleanupTorrent(event.hash)
+                }
                 is TorrentEvent.Started ->
                     bot.sendMessage(
                         ChatId.fromId(config.notificationUser),
@@ -52,5 +61,16 @@ class TorrentStatusMonitor(
             }
         }
     }
+
+
+    private fun CoroutineScope.cleanupTorrent(hash: String) =
+        launch {
+            delay(Duration.ofMinutes(1).toKotlinDuration())
+            runCatching {
+                torrentService.removeTorrent(hash)
+            }.onFailure {
+                it.printStackTrace()
+            }
+        }
 
 }

@@ -36,6 +36,14 @@ class UTorrentClient(
         }.retrieve().awaitBody<String>()
     }
 
+    suspend fun remove(hash: String) {
+        client.get().uri {
+            it.queryParam("action", "remove")
+                .queryParam("hash", hash)
+                .build()
+        }.retrieve().awaitBody<String>()
+    }
+
 
 }
 

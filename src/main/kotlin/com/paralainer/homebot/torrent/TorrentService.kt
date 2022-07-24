@@ -7,6 +7,7 @@ import java.time.Duration
 interface TorrentService {
     suspend fun listDownloads(): List<DownloadItem>
     suspend fun addByUrl(url: URI): Unit
+    suspend fun removeTorrent(hash: String)
 }
 
 @Component
@@ -25,6 +26,7 @@ class UTorrentService(
         }
 
     override suspend fun addByUrl(url: URI): Unit = client.addByUrl(url)
+    override suspend fun removeTorrent(hash: String) = client.remove(hash)
 }
 
 data class DownloadItem(
