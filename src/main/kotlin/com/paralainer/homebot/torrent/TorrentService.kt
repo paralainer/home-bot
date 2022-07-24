@@ -59,6 +59,7 @@ sealed class DownloadStatus(val name: String) {
                 status.contains("download", ignoreCase = true) ||
                     status.contains("queuing", ignoreCase = true) ||
                     status.contains("finding", ignoreCase = true) ||
+                    status.contains("check", ignoreCase = true) ||
                     status.contains("connecting", ignoreCase = true) -> InProgress
 
                 else -> {
