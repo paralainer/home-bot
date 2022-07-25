@@ -25,7 +25,7 @@ class FastmileClient(
         objectMapper.readValue(
             retrieveBody {
                 webClient.get().uri("/fastmile_radio_status_web_app.cgi")
-            }.also(::println)
+            }
         )
 
     suspend fun reboot() {
