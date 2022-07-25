@@ -1,5 +1,6 @@
 package com.paralainer.homebot
 
+import com.paralainer.homebot.fastmile.FastmileConfig
 import com.paralainer.homebot.telegram.TelegramConfig
 import com.paralainer.homebot.torrent.UTorrentConfig
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -17,7 +18,8 @@ class HomeBotApplication
 @Configuration
 @EnableConfigurationProperties(
     TelegramConfig::class,
-    UTorrentConfig::class
+    UTorrentConfig::class,
+    FastmileConfig::class
 )
 class HomeBotApplicationConfiguration {
 

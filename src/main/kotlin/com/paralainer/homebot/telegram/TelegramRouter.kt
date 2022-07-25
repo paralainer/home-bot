@@ -20,6 +20,7 @@ class TelegramRouter(
     private val speedtestHandler: SpeedtestHandler,
     private val statusHandler: StatusHandler,
     private val downloadHandler: DownloadHandler,
+    private val routerHandler: RouterHandler
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -31,6 +32,10 @@ class TelegramRouter(
 
         command("status") {
             handleAsync(update = update) { statusHandler.status(this) }
+        }
+
+        command("restart-router") {
+            handleAsync(update = update) { routerHandler.restartRouter(this) }
         }
 
         text {

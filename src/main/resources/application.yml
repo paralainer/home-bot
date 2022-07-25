@@ -6,3 +6,12 @@ utorrent:
   base-url: ${UTORRENT_BASE_URL}
   username: ${UTORRENT_USERNAME}
   password: ${UTORRENT_PASSWORD}
+
+fastmile:
+  base-url: ${FASTMILE_BASE_URL}
+  username: ${FASTMILE_USERNAME}
+  password: ${FASTMILE_PASSWORD}
+
+logging.level:
+  org.asynchttpclient: ERROR
+  io.netty: ERROR
