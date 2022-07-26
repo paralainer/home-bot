@@ -20,7 +20,7 @@ class FastmileClient(
         expectSuccess = false
     }
 
-    private var authentication: FastmileAuthentication? = FastmileAuthentication("1", "2", "3")
+    private var authentication: FastmileAuthentication? = null
 
     suspend fun status(): StatusResponse =
         withAuthentication {
