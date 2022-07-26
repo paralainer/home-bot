@@ -1,6 +1,6 @@
 package com.paralainer.homebot.fastmile
 
-import com.fasterxml.jackson.annotation.JsonProperty
+import com.google.gson.annotations.SerializedName
 import com.paralainer.homebot.common.apiWebClient
 import io.ktor.client.call.*
 import io.ktor.client.features.json.*
@@ -87,7 +87,7 @@ class FastmileClient(
     private class AuthException : RuntimeException()
 
     data class StatusResponse(
-        @JsonProperty("cell_5G_stats_cfg")
+        @SerializedName("cell_5G_stats_cfg")
         val cell5g: List<Cell5g>
     ) {
         data class Cell5g(
@@ -95,7 +95,7 @@ class FastmileClient(
         )
 
         data class Cell5gStat(
-            @JsonProperty("PCI")
+            @SerializedName("PCI")
             val pci: Long
         )
     }

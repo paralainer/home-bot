@@ -24,7 +24,7 @@ dependencies {
     }
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-java:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-client-gson:$ktorVersion")
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
 
     implementation("io.insert-koin:koin-core:$koinVersion")
@@ -37,7 +37,7 @@ tasks {
         dependsOn.addAll(listOf("compileJava", "compileKotlin", "processResources"))
         archiveClassifier.set("standalone") // Naming the jar
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        manifest { attributes(mapOf("Main-Class" to "com.paralainer.homebot.HomeBotApplicationKt")) }
+        manifest { attributes(mapOf("Main-Class" to application.mainClass)) }
         val sourcesMain = sourceSets.main.get()
         val contents = configurations.runtimeClasspath.get()
             .map { if (it.isDirectory) it else zipTree(it) } +
@@ -66,5 +66,5 @@ tasks.withType<KotlinCompile> {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("com.paralainer.homebot.HomeBotApplicationKt")
 }

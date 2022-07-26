@@ -16,9 +16,9 @@ class UTorrentService(
             DownloadItem(
                 hash = it[0] as String,
                 name = it[2] as String,
-                percentage = (it[4] as Int).toDouble() / 10,
+                percentage = (it[4] as Double) / 10,
                 status = DownloadStatus.fromStatusString((it[21] as String)),
-                eta = Duration.ofSeconds((it[10] as Int).toLong())
+                eta = Duration.ofSeconds((it[10] as Double).toLong())
             )
         }
 
