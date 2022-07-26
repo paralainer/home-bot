@@ -30,18 +30,18 @@ class TorrentStatusMonitor(
                     bot.sendMessage(
                         ChatId.fromId(config.notificationUser),
                         """
-                                Download error:
-                                ${event.name} 
-                                ${event.error}   
-                                """.trimIndent()
+                        Download error:
+                        ${event.name} 
+                        ${event.error}   
+                        """.trimIndent()
                     )
                 is TorrentEvent.Finished -> {
                     bot.sendMessage(
                         ChatId.fromId(config.notificationUser),
                         """
-                                Download finished:
-                                ${event.name}    
-                                """.trimIndent()
+                        Download finished:
+                        ${event.name}    
+                        """.trimIndent()
                     )
 
                     cleanupTorrent(event.hash)
@@ -50,9 +50,9 @@ class TorrentStatusMonitor(
                     bot.sendMessage(
                         ChatId.fromId(config.notificationUser),
                         """
-                                Download started:
-                                ${event.name}    
-                                """.trimIndent()
+                        Download started:
+                        ${event.name}    
+                        """.trimIndent()
                     )
             }
         }

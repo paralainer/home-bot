@@ -52,21 +52,17 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.distTar {
+    enabled = false
+}
+
+tasks.distZip {
+    enabled = false
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "13"
     kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.time.ExperimentalTime"
-}
-
-tasks.withType<Tar> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.withType<Zip> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.withType<Copy> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 application {
