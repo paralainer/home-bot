@@ -8,9 +8,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.springframework.stereotype.Component
 
-@Component
 class TorrentStatusTracker(
     private val torrentService: TorrentService
 ) {

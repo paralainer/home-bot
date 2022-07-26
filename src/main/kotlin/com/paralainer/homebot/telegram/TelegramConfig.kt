@@ -1,13 +1,8 @@
 package com.paralainer.homebot.telegram
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
-
-@ConstructorBinding
-@ConfigurationProperties(prefix = "telegram")
 class TelegramConfig(
-    val token: String,
-    allowedUsers: String,
+    val token: String = System.getenv("TELEGRAM_TOKEN"),
+    allowedUsers: String = System.getenv("TELEGRAM_ALLOWED_USERS"),
 ) {
     val allowedUsersList: Set<Long> = allowedUsers.split(",")
         .filter { it.isNotBlank() }.map { it.trim().toLong() }.toSet()

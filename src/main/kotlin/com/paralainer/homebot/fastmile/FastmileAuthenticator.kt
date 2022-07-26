@@ -1,26 +1,26 @@
 package com.paralainer.homebot.fastmile
 
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.paralainer.homebot.common.CustomObjectMapper
-import com.paralainer.homebot.common.apiWebClientBuilder
+import com.paralainer.homebot.common.apiWebClient
+import io.ktor.client.call.*
+import io.ktor.client.features.json.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.springframework.http.ResponseCookie
-import org.springframework.stereotype.Component
-import org.springframework.util.MultiValueMap
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.awaitBody
-import org.springframework.web.reactive.function.client.awaitExchange
 import java.security.MessageDigest
 import java.util.*
 import kotlin.random.Random
 
-@Component
 class FastmileAuthenticator(
-    private val config: FastmileConfig,
-    private val objectMapper: CustomObjectMapper
+    private val config: FastmileConfig
 ) {
-    private val webClient = apiWebClientBuilder().baseUrl(config.baseUrl).build()
+
+    private val webClient = apiWebClient().config {
+        Json { accept(ContentType.Any) }
+    }
+
     private val lock = Mutex()
 
     suspend fun authenticate(): FastmileAuthentication = lock.withLock {
@@ -36,41 +36,43 @@ class FastmileAuthenticator(
             randomKey = nonce.randomKey
         )
 
-        return webClient.post().uri("/login_web_app.cgi").body(
-            BodyInserters.fromFormData("userhash", authData.userHash())
-                .with("RandomKeyhash", authData.randomKeyHash())
-                .with("response", authData.response())
-                .with("nonce", authData.nonce)
-                .with("enckey", authData.encKey)
-                .with("enciv", authData.encIv)
+        val resp: HttpResponse = webClient.submitForm<HttpStatement>("${config.baseUrl}/login_web_app.cgi",
+            formParameters = Parameters.build {
+                append("userhash", authData.userHash())
+                append("RandomKeyhash", authData.randomKeyHash())
+                append("response", authData.response())
+                append("nonce", authData.nonce)
+                append("enckey", authData.encKey)
+                append("enciv", authData.encIv)
+            }).execute()
 
-        ).awaitExchange { resp ->
-            if (resp.rawStatusCode() >= 300) {
-                throw RuntimeException("Authentication failed. ${resp.rawStatusCode()}")
-            }
-            val body = objectMapper.readValue<AuthResponse>(resp.awaitBody<String>())
-
-            toAuthentication(
-                resp.cookies(),
-                body.token
-            )
+        if (resp.status.value >= 300) {
+            throw RuntimeException("Authentication failed. ${resp.status.value}")
         }
+        val body = resp.receive<AuthResponse>()
+
+        resp.setCookie()
+        resp.headers["Set-Cookie"]
+
+        return toAuthentication(
+            resp.setCookie(),
+            body.token
+        )
     }
 
     private fun toAuthentication(
-        cookies: MultiValueMap<String, ResponseCookie>,
+        cookie: List<Cookie>,
         csrfToken: String
     ) = FastmileAuthentication(
-        cookies.toSingleValueMap().mapValues { (_, value) -> value.value },
+        cookie.find { it.name == "sid" }?.value ?: throw Exception("sid cookie not found in auth response"),
+        cookie.find { it.name == "lsid" }?.value ?: throw Exception("lsid cookie not found in auth response"),
         csrfToken
     )
 
     private suspend fun nonce(): NonceResponse =
-        objectMapper.readValue(
-            webClient.get().uri("/login_web_app.cgi?nonce").retrieve().awaitBody<String>()
-        )
+        webClient.get("${config.baseUrl}/login_web_app.cgi?nonce")
 
-    private data class NonceResponse(
+    data class NonceResponse(
         val nonce: String,
         val randomKey: String
     )
@@ -103,9 +105,7 @@ class FastmileAuthenticator(
 }
 
 data class FastmileAuthentication(
-    val cookies: Map<String, String>,
+    val sid: String,
+    val lsid: String,
     val csrfToken: String
 )
-
-
-

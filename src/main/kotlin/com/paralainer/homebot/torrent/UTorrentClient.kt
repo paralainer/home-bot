@@ -1,56 +1,51 @@
 package com.paralainer.homebot.torrent
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
-import com.paralainer.homebot.common.apiWebClientBuilder
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.ExchangeFilterFunctions
-import org.springframework.web.reactive.function.client.awaitBody
+import com.paralainer.homebot.common.apiWebClient
+import io.ktor.client.features.auth.*
+import io.ktor.client.features.auth.providers.*
+import io.ktor.client.features.json.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.http.*
 import java.net.URI
 
-@Component
 class UTorrentClient(
-    config: UTorrentConfig,
-    private val objectMapper: ObjectMapper
+    private val config: UTorrentConfig,
 ) {
-    private val client = apiWebClientBuilder()
-        .baseUrl(config.baseUrl)
-        .filter(
-            ExchangeFilterFunctions
-                .basicAuthentication(config.username, config.password)
-        )
-        .build()
+    private val client = apiWebClient().config {
+        Json { accept(ContentType.Any) }
 
-    suspend fun listDownloads(): UTorrentDownload {
-        val rawResponse = client.get().uri("?list=1")
-            .retrieve().awaitBody<String>()
-
-        return objectMapper.readValue(rawResponse)
+        install(Auth) {
+            basic {
+                credentials { BasicAuthCredentials(config.username, config.password) }
+            }
+        }
     }
 
+    suspend fun listDownloads(): UTorrentDownload =
+        client.get("${config.baseUrl}?list=1")
+
     suspend fun addByUrl(url: URI) {
-        client.get().uri {
-            it.queryParam("action", "add-url")
-                .queryParam("s", url.toASCIIString())
-                .build()
-        }.retrieve().awaitBody<String>()
+        client.submitForm<String>(
+            config.baseUrl, formParameters = Parameters.build {
+                append("action", "add-url")
+                append("s", url.toASCIIString())
+            },
+            encodeInQuery = true
+        )
     }
 
     suspend fun remove(hash: String) {
-        client.get().uri {
-            it.queryParam("action", "remove")
-                .queryParam("hash", hash)
-                .build()
-        }.retrieve().awaitBody<String>()
+        client.submitForm<String>(
+            config.baseUrl, formParameters = Parameters.build {
+                append("action", "remove")
+                append("hash", hash)
+            },
+            encodeInQuery = true
+        )
     }
-
-
 }
 
 data class UTorrentDownload(
     val torrents: List<List<Any>>
 )
-
-
-
-

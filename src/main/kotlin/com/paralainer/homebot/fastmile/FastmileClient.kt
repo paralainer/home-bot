@@ -1,78 +1,66 @@
 package com.paralainer.homebot.fastmile
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.paralainer.homebot.common.CustomObjectMapper
-import com.paralainer.homebot.common.apiWebClientBuilder
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientRequestException
-import org.springframework.web.reactive.function.client.awaitBody
-import org.springframework.web.reactive.function.client.awaitExchange
-import reactor.netty.http.client.PrematureCloseException
+import com.paralainer.homebot.common.apiWebClient
+import io.ktor.client.call.*
+import io.ktor.client.features.json.*
+import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 
-@Component
 class FastmileClient(
-    config: FastmileConfig,
-    private val auth: FastmileAuthenticator,
-    private val objectMapper: CustomObjectMapper
+    private val config: FastmileConfig,
+    private val auth: FastmileAuthenticator
 ) {
-    private val webClient = apiWebClientBuilder().baseUrl(config.baseUrl).build()
+    private val webClient = apiWebClient().config {
+        Json { accept(ContentType.Any) }
+    }
+
     private var authentication: FastmileAuthentication? = null
 
     suspend fun status(): StatusResponse =
-        objectMapper.readValue(
-            retrieveBody {
-                webClient.get().uri("/fastmile_radio_status_web_app.cgi")
+        withAuthentication {
+            webClient.get("${config.baseUrl}/fastmile_radio_status_web_app.cgi") {
+                authenticate()
             }
-        )
+        }
 
     suspend fun reboot() {
-        try {
-            retrieveBody { auth ->
-                webClient.post().uri("/reboot_web_app.cgi")
-                    .body(BodyInserters.fromFormData("csrf_token", auth.csrfToken))
-            }
-        } catch (ex: WebClientRequestException) {
-            // ignore PrematureCloseException cause this is what happens when you restart a router
-            if (!ex.contains(PrematureCloseException::class.java)) {
-                throw ex
-            }
+        withAuthentication<String> {
+            webClient.submitForm(
+                url = "${config.baseUrl}/reboot_web_app.cgi",
+                formParameters = Parameters.build { append("csrf_token", auth.csrfToken) }
+            ) { authenticate() }
         }
     }
 
-    private suspend fun retrieveBody(
-        block: suspend (FastmileAuthentication) -> WebClient.RequestHeadersSpec<*>
-    ): String {
-        suspend fun doRequest(): String {
-            val auth = fetchAuth()
-            return block(auth).authenticated(auth).awaitExchange {
-                if (it.rawStatusCode() >= 300) {
-                    throw AuthException()
-                }
-
-                it.awaitBody<String>()
-            }
-        }
-
+    private suspend inline fun <reified T> withAuthentication(
+        block: AuthenticationContext.() -> HttpStatement
+    ): T {
         return try {
-            doRequest()
+            doRequest(block)
         } catch (ex: AuthException) {
             reAuthenticate()
-            doRequest()
+            doRequest(block)
         }
     }
 
+    private suspend inline fun <reified T> doRequest(block: AuthenticationContext.() -> HttpStatement): T {
+        val auth = fetchAuth()
+        val resp = block(AuthenticationContext(auth)).execute()
 
-    private suspend fun WebClient.RequestHeadersSpec<*>.authenticated(
-        auth: FastmileAuthentication
-    ): WebClient.RequestHeadersSpec<*> {
-        auth.cookies.forEach { (name, value) ->
-            cookie(name, value)
+        if (resp.status.value >= 300) {
+            throw AuthException()
         }
+        return resp.receive()
+    }
 
-        return this
+    class AuthenticationContext(val auth: FastmileAuthentication) {
+        fun HttpRequestBuilder.authenticate() {
+            cookie("sid", auth.sid)
+            cookie("lsid", auth.lsid)
+        }
     }
 
     private suspend fun fetchAuth(): FastmileAuthentication {

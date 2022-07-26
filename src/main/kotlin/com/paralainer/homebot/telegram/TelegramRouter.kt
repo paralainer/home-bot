@@ -11,10 +11,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import java.time.Duration
 
-@Component
 class TelegramRouter(
     private val config: TelegramConfig,
     private val speedtestHandler: SpeedtestHandler,

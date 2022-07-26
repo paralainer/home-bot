@@ -2,10 +2,9 @@ package com.paralainer.homebot.telegram
 
 import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
 import com.github.kotlintelegrambot.entities.ParseMode
+import com.paralainer.homebot.speedtest.RestSpeedtest
 import com.paralainer.homebot.speedtest.SpeedtestService
-import org.springframework.stereotype.Component
 
-@Component
 class SpeedtestHandler(
     private val speedtestService: SpeedtestService
 ) {

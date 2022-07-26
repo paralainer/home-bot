@@ -1,15 +1,15 @@
 package com.paralainer.homebot.common
 
-import io.netty.resolver.DefaultAddressResolverGroup
-import org.springframework.http.client.reactive.ReactorClientHttpConnector
-import org.springframework.web.reactive.function.client.WebClient
-import reactor.netty.http.client.HttpClient
+import com.fasterxml.jackson.databind.DeserializationFeature
+import io.ktor.client.*
+import io.ktor.client.engine.java.*
+import io.ktor.client.features.json.*
 
-fun apiWebClientBuilder() = WebClient.builder().clientConnector(
-    ReactorClientHttpConnector(
-        HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)
-    )
-)
-
-fun apiWebClient() = apiWebClientBuilder().build()
+fun apiWebClient() = HttpClient(Java) {
+    install(JsonFeature) {
+        serializer = JacksonSerializer {
+            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        }
+    }
+}
 

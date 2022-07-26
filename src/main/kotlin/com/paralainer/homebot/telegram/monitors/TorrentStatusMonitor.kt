@@ -6,16 +6,14 @@ import com.paralainer.homebot.telegram.TelegramConfig
 import com.paralainer.homebot.torrent.TorrentEvent
 import com.paralainer.homebot.torrent.TorrentService
 import com.paralainer.homebot.torrent.TorrentStatusTracker
+import com.paralainer.homebot.torrent.UTorrentService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.springframework.stereotype.Component
 import java.time.Duration
-import javax.annotation.PostConstruct
 import kotlin.time.toKotlinDuration
 
-@Component
 class TorrentStatusMonitor(
     telegramBot: TelegramBot,
     private val config: TelegramConfig,
@@ -25,7 +23,6 @@ class TorrentStatusMonitor(
 
     private val bot = telegramBot.bot
 
-    @PostConstruct
     fun start() = GlobalScope.launch {
         torrentStatusTracker.observeEvents().collect { event ->
             println("Event: $event")

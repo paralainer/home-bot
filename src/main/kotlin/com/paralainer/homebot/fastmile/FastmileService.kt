@@ -1,9 +1,5 @@
 package com.paralainer.homebot.fastmile
 
-import org.springframework.stereotype.Component
-
-
-@Component
 class FastmileService(
     private val fastmileClient: FastmileClient
 ) {

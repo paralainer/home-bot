@@ -2,10 +2,9 @@ package com.paralainer.homebot.telegram
 
 import com.github.kotlintelegrambot.dispatcher.handlers.TextHandlerEnvironment
 import com.paralainer.homebot.torrent.TorrentService
-import org.springframework.stereotype.Component
+import com.paralainer.homebot.torrent.UTorrentService
 import java.net.URI
 
-@Component
 class DownloadHandler(
     private val torrentService: TorrentService
 ) {

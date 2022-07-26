@@ -1,14 +1,11 @@
 package com.paralainer.homebot.speedtest
 
 import com.paralainer.homebot.common.apiWebClient
-import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.awaitBody
+import io.ktor.client.request.*
 
-@Service
 class RestSpeedtest : SpeedtestService {
     override suspend fun measureSpeed(): SpeedtestResult {
-        val result = apiWebClient().get().uri("http://speedtest:8000/speedtest")
-            .retrieve().awaitBody<MeasuringResult>()
+        val result = apiWebClient().get<MeasuringResult>("http://speedtest:8000/speedtest")
 
         return SpeedtestResult(
             downloadSpeedMbps = result.download.toDouble(),

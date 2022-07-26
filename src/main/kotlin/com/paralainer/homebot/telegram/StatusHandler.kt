@@ -6,13 +6,12 @@ import com.paralainer.homebot.fastmile.FastmileService
 import com.paralainer.homebot.torrent.DownloadItem
 import com.paralainer.homebot.torrent.DownloadStatus
 import com.paralainer.homebot.torrent.TorrentService
+import com.paralainer.homebot.torrent.UTorrentService
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.supervisorScope
-import org.springframework.stereotype.Component
 import java.time.Duration
 
-@Component
 class StatusHandler(
     private val torrentService: TorrentService,
     private val routerService: FastmileService
