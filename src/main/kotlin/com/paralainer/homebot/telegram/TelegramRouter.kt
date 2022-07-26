@@ -32,7 +32,7 @@ class TelegramRouter(
             handleAsync(update = update) { statusHandler.status(this) }
         }
 
-        command("restart-router") {
+        command("restart_router") {
             handleAsync(update = update) { routerHandler.restartRouter(this) }
         }
 

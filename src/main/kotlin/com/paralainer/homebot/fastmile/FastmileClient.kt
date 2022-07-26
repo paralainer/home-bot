@@ -8,6 +8,8 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import java.io.EOFException
+import java.io.IOException
 
 class FastmileClient(
     private val config: FastmileConfig,
@@ -15,9 +17,10 @@ class FastmileClient(
 ) {
     private val webClient = apiWebClient().config {
         Json { accept(ContentType.Any) }
+        expectSuccess = false
     }
 
-    private var authentication: FastmileAuthentication? = null
+    private var authentication: FastmileAuthentication? = FastmileAuthentication("1", "2", "3")
 
     suspend fun status(): StatusResponse =
         withAuthentication {
@@ -27,11 +30,19 @@ class FastmileClient(
         }
 
     suspend fun reboot() {
-        withAuthentication<String> {
-            webClient.submitForm(
-                url = "${config.baseUrl}/reboot_web_app.cgi",
-                formParameters = Parameters.build { append("csrf_token", auth.csrfToken) }
-            ) { authenticate() }
+        try {
+            withAuthentication<String> {
+
+                webClient.submitForm(
+                    url = "${config.baseUrl}/reboot_web_app.cgi",
+                    formParameters = Parameters.build { append("csrf_token", auth.csrfToken) }
+                ) { authenticate() }
+            }
+        } catch (ex: IOException) {
+            // ignore EOFException cause router gonna drop a connection on restart
+            if (ex.cause !is EOFException) {
+                throw ex
+            }
         }
     }
 
