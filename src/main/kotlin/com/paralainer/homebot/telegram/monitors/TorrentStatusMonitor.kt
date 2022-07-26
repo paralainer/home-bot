@@ -61,7 +61,7 @@ class TorrentStatusMonitor(
 
     private fun CoroutineScope.cleanupTorrent(hash: String) =
         launch {
-            delay(Duration.ofMinutes(1).toKotlinDuration())
+            delay(Duration.ofMinutes(1).toMillis())
             runCatching {
                 torrentService.removeTorrent(hash)
             }.onFailure {
