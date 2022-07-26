@@ -6,7 +6,6 @@ import com.paralainer.homebot.telegram.TelegramConfig
 import com.paralainer.homebot.torrent.TorrentEvent
 import com.paralainer.homebot.torrent.TorrentService
 import com.paralainer.homebot.torrent.TorrentStatusTracker
-import com.paralainer.homebot.torrent.UTorrentService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
