@@ -11,5 +11,7 @@ fun apiWebClient() = HttpClient(Java) {
             configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         }
     }
+
+    followRedirects = false
 }
 
