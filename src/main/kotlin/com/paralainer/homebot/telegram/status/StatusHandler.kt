@@ -28,19 +28,17 @@ class StatusHandler(
             fetchStatus()
         }
 
-        val downloads = result.downloadsList.joinToString("\n") { it.format() }
+        val downloads = result.downloadsList.map { it.format() }
         env.bot.sendMessage(
             env.message.chatId(),
-            """
-`📶 5G ${result.status5g.value}`  
-```
-${result.devices}
-```               
-```
-$downloads
-```
-""".trimIndent(),
-            ParseMode.MARKDOWN_V2
+            listOf(
+                listOf("\uD83D\uDCF6 5G ${result.status5g.value}")
+            ).plusElement(
+                result.devices
+            ).plusElement(
+                downloads
+            ).joinToString("\n\n") { group -> group.joinToString("\n") { "`$it`" } },
+            parseMode = ParseMode.MARKDOWN_V2,
         )
     }
 
@@ -64,10 +62,10 @@ $downloads
         }
 
 
-    private suspend fun getDevicesStatus(devicesStatusJob: Deferred<List<DeviceStatus>>): String =
+    private suspend fun getDevicesStatus(devicesStatusJob: Deferred<List<DeviceStatus>>): List<String> =
         runCatching {
             val statuses = devicesStatusJob.await().associateBy { it.deviceId }
-            config.ui.rooms.joinToString("\n") { room ->
+            config.ui.rooms.map { room ->
                 room.icon + " " +
                     room.deviceStatuses.mapNotNull {
                         statuses[it]?.asString()
@@ -75,7 +73,7 @@ $downloads
             }
         }.getOrElse {
             it.printStackTrace()
-            ""
+            emptyList()
         }
 
 
@@ -137,7 +135,7 @@ $downloads
     private data class Status(
         val status5g: Status5g,
         val downloadsList: List<DownloadItem>,
-        val devices: String
+        val devices: List<String>
     )
 
     private enum class Status5g(val value: String) {
