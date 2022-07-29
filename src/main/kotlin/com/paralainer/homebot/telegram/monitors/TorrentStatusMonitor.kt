@@ -11,7 +11,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
-import kotlin.time.toKotlinDuration
 
 class TorrentStatusMonitor(
     telegramBot: TelegramBot,

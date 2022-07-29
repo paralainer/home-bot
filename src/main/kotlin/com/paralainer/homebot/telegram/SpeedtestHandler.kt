@@ -2,7 +2,6 @@ package com.paralainer.homebot.telegram
 
 import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
 import com.github.kotlintelegrambot.entities.ParseMode
-import com.paralainer.homebot.speedtest.RestSpeedtest
 import com.paralainer.homebot.speedtest.SpeedtestService
 
 class SpeedtestHandler(

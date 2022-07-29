@@ -29,6 +29,8 @@ dependencies {
 
     implementation("io.insert-koin:koin-core:$koinVersion")
 
+    implementation("org.yaml:snakeyaml:1.30")
+
     testImplementation(kotlin("test"))
 }
 

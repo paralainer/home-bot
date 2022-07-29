@@ -2,7 +2,6 @@ package com.paralainer.homebot.telegram
 
 import com.github.kotlintelegrambot.dispatcher.handlers.TextHandlerEnvironment
 import com.paralainer.homebot.torrent.TorrentService
-import com.paralainer.homebot.torrent.UTorrentService
 import java.net.URI
 
 class DownloadHandler(

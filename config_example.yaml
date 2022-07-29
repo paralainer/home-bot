@@ -1,0 +1,23 @@
+devices:
+  - provider: tuya
+    type: climate-sensor
+    id: 123 # bedroom
+  - provider: tuya
+    type: climate-sensor
+    id: 1234 # living
+
+
+ui:
+  rooms:
+    - name: "bedroom"
+      icon: "🛏"
+      device-statuses:
+        - 123 # climate
+    - name: "living"
+      icon: "🛋"
+      device-statuses:
+        - 1234 # climate
+
+
+
+
