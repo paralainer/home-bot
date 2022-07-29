@@ -79,6 +79,9 @@ class TuyaCloudClient(
         if (auth != null && !auth.isExpired()) {
             return@withLock auth
         }
+
+        this.auth = null
+
         val result = getToken().result ?: throw Exception("Authentication failed")
 
         auth = Auth(
