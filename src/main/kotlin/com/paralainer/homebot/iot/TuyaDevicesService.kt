@@ -1,74 +1,100 @@
 package com.paralainer.homebot.iot
 
-import com.paralainer.homebot.config.DeviceType
-import com.paralainer.homebot.iot.DeviceStatus.BlindsState
+import com.paralainer.homebot.config.CapabilityProvider
+import com.paralainer.homebot.config.CapabilityType
+import com.paralainer.homebot.config.Config
+import com.paralainer.homebot.iot.CapabilityStatus.Openable
 import com.paralainer.homebot.tuya.TuyaCloudClient
 import com.paralainer.homebot.tuya.TuyaDeviceStatus
 
 class TuyaDevicesService(
+    config: Config,
     private val tuyaCloudClient: TuyaCloudClient
 ) {
-    suspend fun getDevicesStatus(devices: Map<String, DeviceType>): List<DeviceStatus> =
+
+    private val devices: Map<String, TuyaDeviceType> = config.capabilities.mapNotNull {
+        if (it.provider == CapabilityProvider.Tuya) {
+            it.id to it.type.let(TuyaDeviceType::fromCapabilityType)
+        } else null
+    }.toMap()
+
+    suspend fun getDevicesStatus(devices: List<String>): List<CapabilityStatus> =
         devices.toList().chunked(20).flatMap { batch ->
-            val statuses = tuyaCloudClient.getDevicesStatus(batch.map { it.first })
+            val statuses = tuyaCloudClient.getDevicesStatus(batch)
             if (statuses.result == null) {
                 throw Exception("Failed to fetch statues for devices")
             }
 
             statuses.result.map {
-                val type = devices[it.id] ?: throw Exception("Unexpected device returned ${it.id}")
-                deviceStatus(type, it.id, it.status)
+                deviceStatus(it.id, it.status)
             }
         }
 
-    suspend fun getDeviceStatus(deviceId: String, type: DeviceType): DeviceStatus {
+    suspend fun getDeviceStatus(deviceId: String, type: TuyaDeviceType): CapabilityStatus {
         val status = tuyaCloudClient.getDeviceStatus(deviceId)
         if (status.result == null) {
             throw Exception("Failed to fetch status for device $deviceId")
         }
 
-        return deviceStatus(type, deviceId, status.result)
+        return deviceStatus(deviceId, status.result)
     }
 
     private fun deviceStatus(
-        type: DeviceType,
         deviceId: String,
         status: List<TuyaDeviceStatus.Item>
-    ): DeviceStatus {
-        return when (type) {
-            DeviceType.ClimateSensor -> readClimateSensor(deviceId, status)
-            DeviceType.BlindsControl -> readBlindsState(deviceId, status)
+    ): CapabilityStatus {
+        return when (devices[deviceId]) {
+            TuyaDeviceType.ClimateSensor -> readClimateSensor(deviceId, status)
+            TuyaDeviceType.BlindsRoller -> readBlindsState(deviceId, status)
+            null -> throw Exception("Unexpected device id $deviceId")
         }
     }
 
-    private fun readClimateSensor(deviceId: String, result: List<TuyaDeviceStatus.Item>): DeviceStatus.ClimateSensor {
+    private fun readClimateSensor(
+        deviceId: String,
+        result: List<TuyaDeviceStatus.Item>
+    ): CapabilityStatus.ClimateSensor {
         val humidity = result.find { it.code == "va_humidity" }?.value as? Double
             ?: throw Exception("Failed to read humidity for device  $deviceId")
 
         val tempF = result.find { it.code == "va_temperature" }?.value as? Double
             ?: throw Exception("Failed to read temperature for device  $deviceId")
 
-        return DeviceStatus.ClimateSensor(
+        return CapabilityStatus.ClimateSensor(
             temperature = tempF.toCelcius(),
             humidity = humidity,
-            deviceId = deviceId
+            capabilityId = deviceId
         )
     }
 
-    private fun readBlindsState(deviceId: String, result: List<TuyaDeviceStatus.Item>): DeviceStatus.Blinds {
+    private fun readBlindsState(deviceId: String, result: List<TuyaDeviceStatus.Item>): CapabilityStatus.Blinds {
         val percent = result.find { it.code == "percent_state" }?.value as? Double
             ?: throw Exception("Failed to read blinds state for device  $deviceId")
 
-        val state = if (percent > 80) BlindsState.Closed else BlindsState.Open
+        val state = if (percent > 80) Openable.Closed else Openable.Open
 
-        return DeviceStatus.Blinds(
+        return CapabilityStatus.Blinds(
             state = state,
-            deviceId = deviceId
+            capabilityId = deviceId
         )
     }
 
 
     private fun Double.toCelcius(): Double = (this - 32.0) * (5.0 / 9.0)
 
+}
+
+enum class TuyaDeviceType {
+    ClimateSensor,
+    BlindsRoller;
+
+    companion object {
+        fun fromCapabilityType(capabilityType: CapabilityType): TuyaDeviceType =
+            when (capabilityType) {
+                CapabilityType.ClimateSensor -> ClimateSensor
+                CapabilityType.BlindsControl -> BlindsRoller
+                else -> throw Exception("Capability '${capabilityType.value} is not supported by Tuya")
+            }
+    }
 }
 

@@ -3,102 +3,75 @@ package com.paralainer.homebot.telegram.status
 import com.github.kotlintelegrambot.dispatcher.handlers.CommandHandlerEnvironment
 import com.github.kotlintelegrambot.entities.ParseMode
 import com.paralainer.homebot.config.Config
-import com.paralainer.homebot.fastmile.FastmileService
-import com.paralainer.homebot.iot.DeviceStatus
-import com.paralainer.homebot.iot.DeviceStatus.BlindsState
-import com.paralainer.homebot.iot.DeviceStatusService
+import com.paralainer.homebot.iot.CapabilitiesStatusService
+import com.paralainer.homebot.iot.CapabilityStatus
+import com.paralainer.homebot.iot.CapabilityStatus.Openable
 import com.paralainer.homebot.telegram.chatId
 import com.paralainer.homebot.telegram.withTypingJob
 import com.paralainer.homebot.torrent.DownloadItem
 import com.paralainer.homebot.torrent.DownloadStatus
-import com.paralainer.homebot.torrent.TorrentService
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.supervisorScope
 import java.time.Duration
 
 class StatusHandler(
-    private val torrentService: TorrentService,
-    private val routerService: FastmileService,
-    private val deviceStatusService: DeviceStatusService,
+    private val capabilitiesStatusService: CapabilitiesStatusService,
     private val config: Config
 ) {
 
     suspend fun status(env: CommandHandlerEnvironment) {
-        val result = withTypingJob(env) {
+        val status = withTypingJob(env) {
             fetchStatus()
         }
 
-        val downloads = result.downloadsList.map { it.format() }
         env.bot.sendMessage(
             env.message.chatId(),
-            listOf(
-                listOf("\uD83D\uDCF6 5G ${result.status5g.value}")
-            ).plusElement(
-                result.devices
-            ).plusElement(
-                downloads
-            ).joinToString("\n\n") { group -> group.joinToString("\n") { "`$it`" } },
+            status.statuses.joinToString("\n\n") { group ->
+                group.joinToString("\n") { "`$it`" }
+            },
             parseMode = ParseMode.MARKDOWN_V2,
         )
     }
 
-    private suspend fun fetchStatus(): Status =
-        supervisorScope {
-            val downloadsListJob = async { torrentService.listDownloads() }
-            val is5gUpJob = async { routerService.is5GUp() }
-            val devicesStatusJob = async { deviceStatusService.getDevicesStatus() }
+    private suspend fun fetchStatus(): Status {
+        val statuses = capabilitiesStatusService.getCapabilitiesStatus().associateBy { it.capabilityId }
 
-            val status5g = getStatus5g(is5gUpJob)
-            val downloadsList = getDownloadsList(downloadsListJob)
-            val devicesStatus = getDevicesStatus(devicesStatusJob)
+        val formattedStatuses = config.status.map { group ->
+            group.items.map { itemConfig ->
+                buildString {
+                    if (itemConfig.text != null) {
+                        append(itemConfig.text).append(" ")
+                    }
 
-            Status(status5g, downloadsList, devicesStatus)
-        }
-
-    private suspend fun getDownloadsList(downloadsListJob: Deferred<List<DownloadItem>>): List<DownloadItem> =
-        runCatching { downloadsListJob.await() }.getOrElse {
-            it.printStackTrace()
-            emptyList()
-        }
-
-
-    private suspend fun getDevicesStatus(devicesStatusJob: Deferred<List<DeviceStatus>>): List<String> =
-        runCatching {
-            val statuses = devicesStatusJob.await().associateBy { it.deviceId }
-            config.ui.rooms.map { room ->
-                room.icon + " " +
-                    room.deviceStatuses.mapNotNull {
-                        statuses[it]?.asString()
-                    }.joinToString(" ")
-            }
-        }.getOrElse {
-            it.printStackTrace()
-            emptyList()
-        }
-
-
-    private fun DeviceStatus.asString(): String =
-        when (this) {
-            is DeviceStatus.ClimateSensor ->
-                "${temperature.toInt()}° ${humidity.toInt()}%"
-            is DeviceStatus.Blinds ->
-                when(state) {
-                    BlindsState.Open -> "🌅"
-                    BlindsState.Closed -> "🌌"
+                    append(
+                        itemConfig.capabilities.mapNotNull { capabilityId ->
+                            val status = statuses[capabilityId]
+                            if (status == null) {
+                                println("Status for capability $capabilityId not found, skipping")
+                                null
+                            } else {
+                                renderCapability(status)
+                            }
+                        }.joinToString(" ")
+                    )
                 }
-
+            }
         }
 
-    private suspend fun getStatus5g(is5gUpJob: Deferred<Boolean>): Status5g =
-        runCatching {
-            val is5gUp = is5gUpJob.await()
+        return Status(formattedStatuses)
+    }
 
-            if (is5gUp) Status5g.Up
-            else Status5g.Down
-        }.getOrElse {
-            it.printStackTrace()
-            Status5g.Error
+    private fun renderCapability(status: CapabilityStatus): String =
+        when (status) {
+            is CapabilityStatus.Blinds ->
+                when (status.state) {
+                    Openable.Open -> "🌅"
+                    Openable.Closed -> "🌌"
+                }
+            is CapabilityStatus.ClimateSensor ->
+                "${status.temperature.toInt()}° ${status.humidity.toInt()}%"
+            is CapabilityStatus.DownloadsStatus ->
+                status.downloads.joinToString("\n") { it.format() }
+            is CapabilityStatus.RouterStatus ->
+                status.status
         }
 
     private fun DownloadItem.format(): String =
@@ -136,16 +109,7 @@ class StatusHandler(
             is DownloadStatus.Unknown -> "❔"
         }
 
-
     private data class Status(
-        val status5g: Status5g,
-        val downloadsList: List<DownloadItem>,
-        val devices: List<String>
+        val statuses: List<List<String>>
     )
-
-    private enum class Status5g(val value: String) {
-        Up("up"),
-        Down("down"),
-        Error("error")
-    }
 }

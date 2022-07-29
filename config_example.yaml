@@ -1,22 +1,42 @@
-devices:
+capabilities:
   - provider: tuya
     type: climate-sensor
     id: 123 # bedroom
   - provider: tuya
+    type: blinds-control
+    id: 1234 # bedroom
+  - provider: tuya
     type: climate-sensor
-    id: 1234 # living
+    id: 5678 # living
+  - provider: fastmile
+    type: router
+    id: router
+  - provider: utorrent
+    type: torrent
+    id: utorrent
 
 
-ui:
-  rooms:
-    - name: "bedroom"
-      icon: "🛏"
-      device-statuses:
-        - 123 # climate
-    - name: "living"
-      icon: "🛋"
-      device-statuses:
-        - 1234 # climate
+status:
+  - group: router
+    items:
+      - text: "📶"
+        capabilities:
+          - router
+  - group: rooms
+    items:
+      - text: "🛏"
+        capabilities:
+          - 123 # climate
+          - 1234 # blinds
+      - text: "🛋"
+        capabilities:
+          - 5678 # climate
+  - group: torrents
+    items:
+      - capabilities:
+          - utorrent
+
+
 
 
 

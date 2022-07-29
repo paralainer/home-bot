@@ -49,7 +49,7 @@ private fun configureDeps() = startKoin {
             singleOf(::UTorrentService) { bind<TorrentService>() }
             singleOf(::TorrentStatusTracker)
 
-            singleOf(::DeviceStatusService)
+            singleOf(::CapabilitiesStatusService)
             singleOf(::TuyaDevicesService)
 
             singleOf(::TuyaCloudClient)
