@@ -7,6 +7,18 @@ import com.paralainer.homebot.tuya.TuyaDeviceStatus
 class TuyaDevicesService(
     private val tuyaCloudClient: TuyaCloudClient
 ) {
+    suspend fun getDevicesStatus(devices: Map<String, DeviceType>): List<DeviceStatus> =
+        devices.toList().chunked(20).flatMap { batch ->
+            val statuses = tuyaCloudClient.getDevicesStatus(batch.map { it.first })
+            if (statuses.result == null) {
+                throw Exception("Failed to fetch statues for devices")
+            }
+
+            statuses.result.map {
+                val type = devices[it.id] ?: throw Exception("Unexpected device returned ${it.id}")
+                deviceStatus(type, it.id, it.status)
+            }
+        }
 
     suspend fun getDeviceStatus(deviceId: String, type: DeviceType): DeviceStatus {
         val status = tuyaCloudClient.getDeviceStatus(deviceId)
@@ -14,9 +26,17 @@ class TuyaDevicesService(
             throw Exception("Failed to fetch status for device $deviceId")
         }
 
+        return deviceStatus(type, deviceId, status.result)
+    }
+
+    private fun deviceStatus(
+        type: DeviceType,
+        deviceId: String,
+        status: List<TuyaDeviceStatus.Item>
+    ): DeviceStatus {
         return when (type) {
-            DeviceType.ClimateSensor -> readClimateSensor(deviceId, status.result)
-            DeviceType.BlindsControl -> readBlindsState(deviceId, status.result)
+            DeviceType.ClimateSensor -> readClimateSensor(deviceId, status)
+            DeviceType.BlindsControl -> readBlindsState(deviceId, status)
         }
     }
 

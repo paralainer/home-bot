@@ -10,17 +10,19 @@ class DeviceStatusService(
     private val devicesConfig: Config,
     private val tuyaDevicesService: TuyaDevicesService
 ) {
-    suspend fun getDevicesStatus(): List<DeviceStatus> =
-        coroutineScope {
-            devicesConfig.devices.map {
-                async {
-                    when (it.provider) {
-                        DeviceProvider.Tuya ->
-                            tuyaDevicesService.getDeviceStatus(it.id, it.type)
-                    }
+    suspend fun getDevicesStatus(): List<DeviceStatus> = coroutineScope {
+        val groupedDevices = devicesConfig.devices.groupBy { it.provider }
+
+        groupedDevices.map { (provider, devices) ->
+            when (provider) {
+                DeviceProvider.Tuya -> async {
+                    tuyaDevicesService.getDevicesStatus(
+                        devices.associate { it.id to it.type }
+                    )
                 }
-            }.awaitAll()
-        }
+            }
+        }.awaitAll().flatten()
+    }
 }
 
 sealed interface DeviceStatus {

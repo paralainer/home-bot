@@ -25,6 +25,11 @@ class TuyaCloudClient(
             authenticate()
         }
 
+    suspend fun getDevicesStatus(deviceIds: List<String>): TuyaDevicesStatus =
+        webClient.get("${config.baseUrl}/v1.0/iot-03/devices/status?device_ids=${deviceIds.joinToString(",")}") {
+            authenticate()
+        }
+
     private suspend fun getToken(): TokenResponse =
         webClient.get("${config.baseUrl}/v1.0/token?grant_type=1") {
             authenticate(noRefresh = true)
@@ -127,6 +132,9 @@ class TuyaCloudClient(
     }
 }
 
+data class TuyaDevicesStatus(val result: List<Status>?) {
+    data class Status(val id: String, val status: List<TuyaDeviceStatus.Item>)
+}
 data class TuyaDeviceStatus(val result: List<Item>?) {
     data class Item(
         val code: String,
