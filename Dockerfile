@@ -10,6 +10,7 @@ COPY gradle.properties $APP_HOME
 RUN ./gradlew build -x test --no-daemon --info || return 0
 
 COPY src ./src
+COPY config.yaml ./config.yaml
 RUN ./gradlew build -x test --no-daemon --info
 
 EXPOSE 8080
