@@ -84,8 +84,8 @@ class StatusHandler(
                 "${temperature.toInt()}° ${humidity.toInt()}%"
             is DeviceStatus.Blinds ->
                 when(state) {
-                    BlindsState.Open -> "🏙"
-                    BlindsState.Closed -> "🌃"
+                    BlindsState.Open -> "🌅"
+                    BlindsState.Closed -> "🌌"
                 }
 
         }
