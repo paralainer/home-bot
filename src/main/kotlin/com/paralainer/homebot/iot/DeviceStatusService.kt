@@ -28,4 +28,6 @@ sealed interface DeviceStatus {
 
     data class ClimateSensor(val temperature: Double, val humidity: Double, override val deviceId: String) :
         DeviceStatus
+
+    data class BlindsState(val state: String, override val deviceId: String) : DeviceStatus
 }

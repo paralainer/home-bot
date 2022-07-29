@@ -83,6 +83,8 @@ $downloads
         when (this) {
             is DeviceStatus.ClimateSensor ->
                 "${temperature.toInt()}° ${humidity.toInt()}%"
+            is DeviceStatus.BlindsState ->
+                "🌆 $state"
         }
 
     private suspend fun getStatus5g(is5gUpJob: Deferred<Boolean>): Status5g =

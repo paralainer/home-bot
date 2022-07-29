@@ -89,7 +89,8 @@ enum class DeviceProvider(val value: String) {
 }
 
 enum class DeviceType(val value: String) {
-    ClimateSensor("climate-sensor");
+    ClimateSensor("climate-sensor"),
+    BlindsControl("blinds-control");
 
     companion object {
         fun fromString(value: String): DeviceType =

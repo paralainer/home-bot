@@ -16,6 +16,7 @@ class TuyaDevicesService(
 
         return when (type) {
             DeviceType.ClimateSensor -> readClimateSensor(deviceId, status.result)
+            DeviceType.BlindsControl -> readBlindsState(deviceId, status.result)
         }
     }
 
@@ -29,6 +30,18 @@ class TuyaDevicesService(
         return DeviceStatus.ClimateSensor(
             temperature = tempF.toCelcius(),
             humidity = humidity,
+            deviceId = deviceId
+        )
+    }
+
+    private fun readBlindsState(deviceId: String, result: List<TuyaDeviceStatus.Item>): DeviceStatus.BlindsState {
+        val percent = result.find { it.code == "percent_state" }?.value as? Double
+            ?: throw Exception("Failed to read blinds state for device  $deviceId")
+
+        val state = if (percent > 80) "closed" else "open"
+
+        return DeviceStatus.BlindsState(
+            state = state,
             deviceId = deviceId
         )
     }
