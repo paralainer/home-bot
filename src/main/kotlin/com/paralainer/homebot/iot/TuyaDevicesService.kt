@@ -1,6 +1,7 @@
 package com.paralainer.homebot.iot
 
 import com.paralainer.homebot.config.DeviceType
+import com.paralainer.homebot.iot.DeviceStatus.BlindsState
 import com.paralainer.homebot.tuya.TuyaCloudClient
 import com.paralainer.homebot.tuya.TuyaDeviceStatus
 
@@ -54,13 +55,13 @@ class TuyaDevicesService(
         )
     }
 
-    private fun readBlindsState(deviceId: String, result: List<TuyaDeviceStatus.Item>): DeviceStatus.BlindsState {
+    private fun readBlindsState(deviceId: String, result: List<TuyaDeviceStatus.Item>): DeviceStatus.Blinds {
         val percent = result.find { it.code == "percent_state" }?.value as? Double
             ?: throw Exception("Failed to read blinds state for device  $deviceId")
 
-        val state = if (percent > 80) "closed" else "open"
+        val state = if (percent > 80) BlindsState.Closed else BlindsState.Open
 
-        return DeviceStatus.BlindsState(
+        return DeviceStatus.Blinds(
             state = state,
             deviceId = deviceId
         )

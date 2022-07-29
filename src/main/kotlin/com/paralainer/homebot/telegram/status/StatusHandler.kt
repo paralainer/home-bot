@@ -5,6 +5,7 @@ import com.github.kotlintelegrambot.entities.ParseMode
 import com.paralainer.homebot.config.Config
 import com.paralainer.homebot.fastmile.FastmileService
 import com.paralainer.homebot.iot.DeviceStatus
+import com.paralainer.homebot.iot.DeviceStatus.BlindsState
 import com.paralainer.homebot.iot.DeviceStatusService
 import com.paralainer.homebot.telegram.chatId
 import com.paralainer.homebot.telegram.withTypingJob
@@ -81,8 +82,12 @@ class StatusHandler(
         when (this) {
             is DeviceStatus.ClimateSensor ->
                 "${temperature.toInt()}° ${humidity.toInt()}%"
-            is DeviceStatus.BlindsState ->
-                "🌆 $state"
+            is DeviceStatus.Blinds ->
+                when(state) {
+                    BlindsState.Open -> "🏙"
+                    BlindsState.Closed -> "🌃"
+                }
+
         }
 
     private suspend fun getStatus5g(is5gUpJob: Deferred<Boolean>): Status5g =
